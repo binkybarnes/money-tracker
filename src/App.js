@@ -1,15 +1,62 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
   const [name, setName] = useState("");
   const [datetime, setDatetime] = useState("");
   const [description, setDescription] = useState("");
-  function addNewTransaction() {}
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    getTransactions().then(setTransactions);
+  }, []);
+
+  async function getTransactions() {
+    const url = process.env.REACT_APP_API_URL + "/transactions";
+    const response = await fetch(url);
+    return await response.json();
+  }
+  function addNewTransaction(ev) {
+    ev.preventDefault();
+    const url = process.env.REACT_APP_API_URL + "/transaction";
+    const price = name.split(" ")[0];
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        price,
+        name: name.substring(price.length + 1),
+        description,
+        datetime,
+      }),
+    }).then((response) => {
+      console.log(response);
+      response.json().then((json) => {
+        setName("");
+        setDatetime("");
+        setDescription("");
+        console.log("result", json);
+      });
+    });
+  }
+  let balance = 0;
+  for (const transaction of transactions) {
+    if (transaction.price != null) {
+      balance = balance + transaction.price;
+    }
+  }
+
+  balance = balance.toFixed(2);
+  const fraction = balance.split(".")[1];
+  balance = balance.split(".")[0];
+
+  console.log(balance);
+
   return (
     <main>
       <h1>
-        $400<span>.00</span>
+        ${balance}
+        <span>{fraction}</span>
       </h1>
       <form onSubmit={addNewTransaction}>
         <div className="basic">
@@ -17,10 +64,10 @@ function App() {
             type="text"
             value={name}
             onChange={(ev) => setName(ev.target.value)}
-            placeholder={"+200 new samsung tv"}
+            placeholder={"-200 new samsung tv"}
           />
           <input
-            type="datetimetime-local"
+            type="datetime-local"
             value={datetime}
             onChange={(ev) => setDatetime(ev.target.value)}
           />
@@ -36,36 +83,25 @@ function App() {
         <button type="submit">Add new transaction</button>
       </form>
       <div className="transactions">
-        <div className="transaction">
-          <div className="left">
-            <div className="name">New Samsung TV</div>
-            <div className="description">it was time for new tv</div>
-          </div>
-          <div className="right">
-            <div className="price red">-$500</div>
-            <div className="datetime">2022-12-18</div>
-          </div>
-        </div>
-        <div className="transaction">
-          <div className="left">
-            <div className="name">Gig job new website</div>
-            <div className="description">it was time for new tv</div>
-          </div>
-          <div className="right">
-            <div className="price green">+$400</div>
-            <div className="datetime">2022-12-18</div>
-          </div>
-        </div>
-        <div className="transaction">
-          <div className="left">
-            <div className="name">iPhone</div>
-            <div className="description">it was time for new tv</div>
-          </div>
-          <div className="right">
-            <div className="price red">-$900</div>
-            <div className="datetime">2022-12-18</div>
-          </div>
-        </div>
+        {transactions.length > 0 &&
+          transactions.map((transaction) => (
+            <div className="transaction">
+              <div className="left">
+                <div className="name">{transaction.name}</div>
+                <div className="description">{transaction.description}</div>
+              </div>
+              <div className="right">
+                <div
+                  className={
+                    "price " + (transaction.price < 0 ? "red" : "green")
+                  }
+                >
+                  {transaction.price}
+                </div>
+                <div className="datetime">2022-12-18</div>
+              </div>
+            </div>
+          ))}
       </div>
     </main>
   );
