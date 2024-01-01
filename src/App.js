@@ -11,12 +11,22 @@ function App() {
     getTransactions().then(setTransactions);
   }, []);
 
+  async function deleteTransaction(transactionId) {
+    console.log(transactionId);
+    const url = process.env.REACT_APP_API_URL + `/transaction/${transactionId}`;
+    const response = await fetch(url, { method: "DELETE" });
+    setTransactions(
+      transactions.filter((transaction) => transaction._id !== transactionId)
+    );
+    return await response.json();
+  }
+
   async function getTransactions() {
     const url = process.env.REACT_APP_API_URL + "/transactions";
     const response = await fetch(url);
     return await response.json();
   }
-  function addNewTransaction(ev) {
+  async function addNewTransaction(ev) {
     ev.preventDefault();
     const url = process.env.REACT_APP_API_URL + "/transaction";
     const price = name.split(" ")[0];
@@ -31,6 +41,7 @@ function App() {
       }),
     }).then((response) => {
       console.log(response);
+
       response.json().then((json) => {
         setName("");
         setDatetime("");
@@ -38,6 +49,8 @@ function App() {
         console.log("result", json);
       });
     });
+    const updatedTransactions = await getTransactions();
+    setTransactions(updatedTransactions);
   }
   let balance = 0;
   for (const transaction of transactions) {
@@ -91,14 +104,24 @@ function App() {
                 <div className="description">{transaction.description}</div>
               </div>
               <div className="right">
-                <div
-                  className={
-                    "price " + (transaction.price < 0 ? "red" : "green")
-                  }
-                >
-                  {transaction.price}
+                <div className="right_left">
+                  <div
+                    className={
+                      "price " + (transaction.price < 0 ? "red" : "green")
+                    }
+                  >
+                    {transaction.price}
+                  </div>
+                  <div className="datetime">2022-12-18</div>
                 </div>
-                <div className="datetime">2022-12-18</div>
+                <div className="right_right">
+                  <button
+                    className="delete"
+                    onClick={() => deleteTransaction(transaction._id)}
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             </div>
           ))}
