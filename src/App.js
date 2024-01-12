@@ -7,6 +7,7 @@ function App() {
   const [description, setDescription] = useState("");
   const [transactions, setTransactions] = useState([]);
 
+  console.log(process.env.REACT_APP_API_URL);
   useEffect(() => {
     getTransactions().then(setTransactions);
   }, []);
