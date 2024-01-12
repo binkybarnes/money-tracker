@@ -5,7 +5,13 @@ const Transaction = require("./models/Transaction.js");
 const { default: mongoose } = require("mongoose");
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["https://money-tracker-sooty-mu.vercel.app/"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get("/api/test", (req, res) => {
